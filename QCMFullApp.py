@@ -366,7 +366,3 @@ else:
     if st.button('Recommencer le quiz 🔄'):
         reset_quiz()
         st.rerun()
-
-# Ajout d'un compteur de progression en bas de page
-st.sidebar.write(f"Progression: {st.session_state.current_question}/{quiz.total_questions}")
-st.sidebar.write(f"Score actuel: {st.session_state.score}")
