@@ -336,9 +336,9 @@ if st.session_state.current_question < quiz.total_questions:
 
     # Bouton suivant
     if st.session_state.reponses_donnees:
-        col1, col2 = st.columns([1, 5])
+        col1, col2 = st.columns([0.2, 0.8])
         with col1:
-            if st.button('Question suivante ➡️'):
+            if st.button('Suivant ➡️'):
                 st.session_state.current_question += 1
                 st.session_state.reponses_donnees = False
                 st.rerun()
