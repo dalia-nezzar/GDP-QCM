@@ -259,6 +259,7 @@ class QuizGestionProjet:
                 "type": "multiple"
             }
         ]
+        self.total_questions = len(self.questions)
 
 
 def initialiser_session():
@@ -269,7 +270,7 @@ def initialiser_session():
     if 'questions_melangees' not in st.session_state:
         questions = list(range(len(quiz.questions)))
         random.shuffle(questions)
-        st.session_state.questions_melangees = questions[:7]
+        st.session_state.questions_melangees = questions  # On prend toutes les questions
     if 'reponses_donnees' not in st.session_state:
         st.session_state.reponses_donnees = False
 
@@ -283,17 +284,26 @@ quiz = QuizGestionProjet()
 
 st.title('Quiz de Gestion de Projet')
 
+# Initialisation
 initialiser_session()
 
-if st.session_state.current_question < 7:
+# Si on n'a pas encore répondu à toutes les questions
+if st.session_state.current_question < quiz.total_questions:
     question_idx = st.session_state.questions_melangees[st.session_state.current_question]
     question = quiz.questions[question_idx]
 
-    st.header(f"Question {st.session_state.current_question + 1}/7")
+    # Affichage de la question
+    st.header(f"Question {st.session_state.current_question + 1}/{quiz.total_questions}")
     st.write(question["question"])
 
+    # Barre de progression
+    progress = st.session_state.current_question / quiz.total_questions
+    st.progress(progress)
+
+    # Type de question
     st.write(f"*Type: {'Choix multiple' if question['type'] == 'multiple' else 'Choix unique'}*")
 
+    # Création des options de réponse
     if not st.session_state.reponses_donnees:
         if question["type"] == "unique":
             reponse = st.radio("Choisissez votre réponse:",
@@ -324,25 +334,39 @@ if st.session_state.current_question < 7:
                     bonnes_reponses = [question['choices'][i] for i in question["correct"]]
                     st.write("Les bonnes réponses étaient : " + ", ".join(bonnes_reponses))
 
+    # Bouton suivant
     if st.session_state.reponses_donnees:
-        if st.button('Question suivante'):
-            st.session_state.current_question += 1
-            st.session_state.reponses_donnees = False
-            st.rerun()
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            if st.button('Question suivante ➡️'):
+                st.session_state.current_question += 1
+                st.session_state.reponses_donnees = False
+                st.rerun()
 
+# Affichage des résultats finaux
 else:
-    st.header("Quiz terminé !")
-    score_percentage = (st.session_state.score / 7) * 100
-    st.write(f"Score final : {st.session_state.score}/7")
-    st.write(f"Pourcentage de réussite : {score_percentage:.1f}%")
+    st.header("Quiz terminé ! 🎉")
+    score_percentage = (st.session_state.score / quiz.total_questions) * 100
 
+    # Création de colonnes pour un affichage plus élégant
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Score final", f"{st.session_state.score}/{quiz.total_questions}")
+    with col2:
+        st.metric("Pourcentage", f"{score_percentage:.1f}%")
+
+    # Message personnalisé basé sur le score
     if score_percentage >= 80:
-        st.success("🌟 Excellent ! Vous maîtrisez bien le sujet !")
+        st.success("🌟 Bien vu, t'es prêt :)")
     elif score_percentage >= 60:
-        st.warning("👍 Pas mal ! Continuez vos révisions !")
+        st.warning("👍 Pas mal ! Continue tes révisions.")
     else:
-        st.error("📚 Continuez à travailler, vous pouvez vous améliorer !")
+        st.error("📚 Oof, force. Revois tes cours.")
 
-    if st.button('Recommencer le quiz'):
+    if st.button('Recommencer le quiz 🔄'):
         reset_quiz()
         st.rerun()
+
+# Ajout d'un compteur de progression en bas de page
+st.sidebar.write(f"Progression: {st.session_state.current_question}/{quiz.total_questions}")
+st.sidebar.write(f"Score actuel: {st.session_state.score}")
